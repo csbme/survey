@@ -32,6 +32,183 @@ class DefaultController extends Controller
 
 
     /**
+     * @Route("survey", name="survey")
+     */
+    public function surveyAction(Request $request)
+    {
+        $surveyId = $request->get('surveyId');
+        $questionId = $request->get('questionId');
+
+        if (!$questionId) {
+
+            $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT a, q, s
+FROM AppBundle\Entity\Answer a
+JOIN a.question q
+JOIN q.survey s
+WHERE s.id = " . $surveyId . "
+");
+            $result = $query->getResult();
+
+            $countQuestion = 0;
+            foreach ($result as $value){
+
+                $currentQuestionId = $value->getQuestion()->getId();
+                if(!empty($previousQuestionId) and $previousQuestionId == $currentQuestionId)
+                {
+                    continue;
+                }
+                $countQuestion++;
+                $previousQuestionId = $value->getQuestion()->getId();
+            }
+            $questionId = $result[0]->getQuestion()->getId();
+        }
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT a, q, s
+FROM AppBundle\Entity\Answer a
+JOIN a.question q
+JOIN q.survey s
+WHERE s.id = " . $surveyId . " and q.id = " . $questionId . "
+
+");
+        $result = $query->getResult();
+
+
+
+        return $this->render('show/view.html.twig', array(
+            'questionCount' => $countQuestion,
+            'data' => $result,
+            'questionId' => $questionId ? $questionId : null,
+        ));
+    }
+
+
+    /**
+     * @Route("view_data")
+     */
+    public function viewData(Request $request)
+    {
+        $questionId = $request->get('questionId');
+        $surveyId = $request->get('surveyId');
+        $booleanArray = $request->get('boolean');
+
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT s
+FROM AppBundle\Entity\Survey s
+WHERE s.id = " . $surveyId . "
+
+");
+        $survey = $query->getResult()[0];
+
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT q
+FROM AppBundle\Entity\Question q
+WHERE q.id = " . $questionId . "
+
+");
+        $question = $query->getResult()[0];
+        $em = $this->getDoctrine()->getManager();
+
+        foreach ($booleanArray as $key => $value) {
+
+            $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT a
+FROM AppBundle\Entity\Answer a
+WHERE a.id = " . $key . "
+
+");
+            $answer = $query->getResult()[0];
+
+            $response = new EntityResponse;
+            $response->setSurvey($survey);
+            $response->setQuestion($question);
+            $response->setAnswer($answer);
+            $response->setBoolean($value);
+            $em->persist($response);
+        }
+
+        $em->flush();
+
+            return $this->redirectToRoute('nextQuestion', array(
+                'surveyId' => $surveyId,
+                'questionId' => $questionId,
+            ));
+    }
+
+
+    /**
+     * @Route("nextQuestion")
+     */
+    public function nextQuestion(Request $request)
+    {
+        $surveyId = $request->get('$surveyId');
+        $questionId = $request->get('questionId');
+        $questionHistory = $request->get('questionHistory');
+
+
+        $surveyId=51;
+        $questionId=735;
+
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT a, q, s
+FROM AppBundle\Entity\Answer a
+JOIN a.question q
+JOIN q.survey s
+WHERE s.id = " . $surveyId . "
+");
+
+        /*
+         * WHERE s.id = " . $surveyId . " and q.id > " . $questionId . "
+         * */
+
+        $result = $query->getResult();
+
+        if(!$result)
+        {
+            return new Response('done');
+        }
+
+
+        $nextId = null;
+        $previousId = null;
+
+        foreach ($result as $value) {
+            $currentId = $value->getQuestion()->getId();
+
+            if (is_null($previousId)) {
+                $previousId = $currentId;
+                $nextId = $currentId;
+                continue;
+            }
+
+            if ($currentId < $previousId and $currentId > $questionId) {
+                $nextId = $currentId;
+                continue;
+            }
+
+            $previousId = $value->getQuestion()->getId();
+        }
+
+
+        $questionId = $request->get('questionId');
+        $surveyId = $request->get('surveyId');
+        $booleanArray = $request->get('boolean');
+
+
+        return $this->redirectToRoute('nextQuestion', array(
+            'surveyId' => $surveyId,
+            'questionId' => $questionId,
+        ));
+
+    }
+
+
+
+
+
+
+
+    /**
      * @Route("/abc")
      */
     function abc()

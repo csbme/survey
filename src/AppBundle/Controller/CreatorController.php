@@ -317,4 +317,31 @@ WHERE s.id = " . $surveyId . " and q.id = " . $questionId . "
         return $this->editAction($request);
     }
 
+
+    /**
+     * @Route("view", name="view")
+     */
+    public function viewAll()
+    {
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT q, s
+FROM AppBundle\Entity\Question q
+
+JOIN q.survey s
+
+");
+
+        $result = $query->getResult();
+
+
+
+        return $this->render('/create/view.html.twig', array(
+            'data' => $result,
+        ));
+
+
+
+        return new Response('hi');
+    }
+
 }
