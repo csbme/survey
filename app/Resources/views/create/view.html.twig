@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <h3>Umfrageübersicht</h3>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Unterrichtsfach</th>
+
+            <th>Thema</th>
+            <th>Semester</th>
+            <th>Vorschau</th>
+            <th>Starten{% for i in 0..8 %}&nbsp;{% endfor %}</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for i in data %}
+            {% if loop.first or i.survey.id != surveyId %}
+
+            <tr>
+                <td>{{ i.survey.id }}</td>
+                <td>{{ i.survey.subject }}</td>
+                <td>{{ i.survey.semester }}</td>
+
+                <td>{{ i.text | slice (0,50)  }}</td>
+
+
+                <td>
+                    <form action="survey" method="post">
+                        <input type="submit" value="Start">
+                        <input type="hidden" name="surveyId" value="{{ i.survey.id }}">
+                    </form>
+
+                </td>
+
+            </tr>
+
+                {% set surveyId = i.survey.id %}
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <style>
+        table, tr, td {
+            border: solid;
+            border-collapse: collapse;
+            padding: 2%;
+        }
+
+        td {
+            width: 33.33%;
+        }
+
+    </style>
+{% endblock %}
