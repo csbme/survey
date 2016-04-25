@@ -15,10 +15,10 @@
     {% endif %}
 
 
-    <h6>Umfrage X von {{ questionCount }}</h6><br><br>
+    <h6>Frage {{ currentQuestion }} von {{ countQuestion }}</h6><br><br>
 
 
-    <form method="post" action="view_data">
+    <form method="post" action="answer">
         <table style="border-collapse: collapse; borSder: solid black 2px ">
             <tr>
                 <th>Frage</th>
@@ -43,6 +43,9 @@
 
         <input type="hidden" name="questionId" value="{{ data[0].question.id }}">
         <input type="hidden" name="surveyId" value="{{ data[0].question.survey.id }}">
+        <input type="hidden" name="countQuestion" value="{{ countQuestion }}">
+        <input type="hidden" name="countQuestion" value="{{ currentQuestion }}">
+
 
         <input type="submit" value="Ok">
     </form>

@@ -27,6 +27,9 @@ class DefaultController extends Controller
         // replace this example code with whatever you need
         return $this->render('default/index.html.twig', [
             'base_dir' => realpath($this->getParameter('kernel.root_dir') . '/..'),
+        ]);        // replace this example code with whatever you need
+        return $this->render('default/index.html.twig', [
+            'base_dir' => realpath($this->getParameter('kernel.root_dir') . '/..'),
         ]);
     }
 
@@ -38,6 +41,8 @@ class DefaultController extends Controller
     {
         $surveyId = $request->get('surveyId');
         $questionId = $request->get('questionId');
+
+
 
         if (!$questionId) {
 
@@ -51,6 +56,7 @@ WHERE s.id = " . $surveyId . "
             $result = $query->getResult();
 
             $countQuestion = 0;
+            $currentQuestion = 1;
             foreach ($result as $value){
 
                 $currentQuestionId = $value->getQuestion()->getId();
@@ -62,7 +68,12 @@ WHERE s.id = " . $surveyId . "
                 $previousQuestionId = $value->getQuestion()->getId();
             }
             $questionId = $result[0]->getQuestion()->getId();
+        } else {
+            $countQuestion = $request->get('countQuestion');
+            $currentQuestion = $request->get('currentQuestion');
+            $currentQuestion++;
         }
+
         $query = $this->getDoctrine()->getManager()->createQuery("
 SELECT a, q, s
 FROM AppBundle\Entity\Answer a
@@ -74,23 +85,25 @@ WHERE s.id = " . $surveyId . " and q.id = " . $questionId . "
         $result = $query->getResult();
 
 
-
         return $this->render('show/view.html.twig', array(
-            'questionCount' => $countQuestion,
             'data' => $result,
+            'countQuestion' => $countQuestion,
+            'currentQuestion' => $currentQuestion,
             'questionId' => $questionId ? $questionId : null,
         ));
     }
 
 
     /**
-     * @Route("view_data")
+     * @Route("answer", name="answer")
      */
     public function viewData(Request $request)
     {
         $questionId = $request->get('questionId');
         $surveyId = $request->get('surveyId');
         $booleanArray = $request->get('boolean');
+        $countQuestion = $request->get('countQuestion');
+        $currentQuestion = $request->get('currentQuestion');
 
         $query = $this->getDoctrine()->getManager()->createQuery("
 SELECT s
@@ -109,63 +122,58 @@ WHERE q.id = " . $questionId . "
         $question = $query->getResult()[0];
         $em = $this->getDoctrine()->getManager();
 
-        foreach ($booleanArray as $key => $value) {
 
-            $query = $this->getDoctrine()->getManager()->createQuery("
+        if ($booleanArray){
+            foreach ($booleanArray as $key => $value) {
+
+                $query = $this->getDoctrine()->getManager()->createQuery("
 SELECT a
 FROM AppBundle\Entity\Answer a
 WHERE a.id = " . $key . "
 
 ");
-            $answer = $query->getResult()[0];
+                $answer = $query->getResult()[0];
 
-            $response = new EntityResponse;
-            $response->setSurvey($survey);
-            $response->setQuestion($question);
-            $response->setAnswer($answer);
-            $response->setBoolean($value);
-            $em->persist($response);
+                $response = new EntityResponse;
+                $response->setSurvey($survey);
+                $response->setQuestion($question);
+                $response->setAnswer($answer);
+                $response->setBoolean($value);
+                $em->persist($response);
+            }
+
+            $em->flush();
         }
 
-        $em->flush();
+//            return $this->redirectToRoute('nextQuestion', array(
+//                'surveyId' => $surveyId,
+//                'questionId' => $questionId,
+//            ));
 
-            return $this->redirectToRoute('nextQuestion', array(
-                'surveyId' => $surveyId,
-                'questionId' => $questionId,
-            ));
-    }
-
-
-    /**
-     * @Route("nextQuestion")
-     */
-    public function nextQuestion(Request $request)
-    {
-        $surveyId = $request->get('$surveyId');
-        $questionId = $request->get('questionId');
-        $questionHistory = $request->get('questionHistory');
+//        return $this->nextQuestion($surveyId, $questionId);
 
 
-        $surveyId=51;
-        $questionId=735;
+
 
         $query = $this->getDoctrine()->getManager()->createQuery("
 SELECT a, q, s
 FROM AppBundle\Entity\Answer a
 JOIN a.question q
 JOIN q.survey s
-WHERE s.id = " . $surveyId . "
+WHERE s.id = " . $surveyId . " AND q.id > " . $questionId . "
 ");
 
-        /*
-         * WHERE s.id = " . $surveyId . " and q.id > " . $questionId . "
-         * */
+
 
         $result = $query->getResult();
 
+
         if(!$result)
         {
-            return new Response('done');
+            return $this->redirectToRoute('result', array(
+                'surveyId' => $surveyId,
+            ));
+
         }
 
 
@@ -189,15 +197,68 @@ WHERE s.id = " . $surveyId . "
             $previousId = $value->getQuestion()->getId();
         }
 
-
-        $questionId = $request->get('questionId');
-        $surveyId = $request->get('surveyId');
-        $booleanArray = $request->get('boolean');
-
-
-        return $this->redirectToRoute('nextQuestion', array(
+        return $this->redirectToRoute('survey', array(
             'surveyId' => $surveyId,
-            'questionId' => $questionId,
+            'questionId' => $nextId,
+            'countQuestion' => $countQuestion,
+            'currentQuestion' => $currentQuestion,
+        ));
+
+    }
+
+
+    /**
+     * @Route("result", name="result")
+     */
+    public function resultData(Request $request)
+    {
+//        $surveyId = $request->get('surveyId');
+        $surveyId = 51;
+
+
+        $query = $this->getDoctrine()->getManager()->createQuery("
+SELECT r, a, q, s
+FROM AppBundle\Entity\Response r
+JOIN r.answer a
+JOIN r.question q
+JOIN r.survey s
+WHERE r.survey = " . $surveyId . "
+");
+
+        $result = $query->getResult();
+
+
+            $totalResponses = count($result);
+            $countBooleanTrue = null;
+            $countBooleanFalse = null;
+
+            foreach ($result as $value)
+            {
+
+                if (($value->isBoolean() == $value->getAnswer()->isBoolean()) == true ){
+
+                    $countBooleanTrue++;
+                } else {
+                    $countBooleanFalse++;
+                }
+            }
+
+            if ($countBooleanTrue + $countBooleanFalse != $totalResponses)
+            {
+                die('error: resultData');
+            }
+
+            dump($countBooleanTrue);
+            dump($countBooleanFalse);
+            dump($totalResponses);
+
+
+        dump($result);
+        die();
+
+
+        return $this->render('show/result.html.twig', array(
+            'surveyId' => $surveyId,
         ));
 
     }

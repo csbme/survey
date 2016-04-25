@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <h3>Fach: {{ data[0].question.survey.subject }}, Thema: "{{ data[0].question.survey.topic }}"</h3>
+
+    {% if data[0].question.survey.semester is not null %}
+        <h4>{{ data[0].question.survey.semester }}. Semester</h4>
+    {% endif %}
+
+    {{ dump(data) }}
+
+    <table>
+        <tr>
+            <th>Frage</th>
+            <th>Antwortmöglichkeit</th>
+            <th>Status</th>
+            <th>Edit{% for i in 0..8 %}&nbsp;{% endfor %}</th>
+        </tr>
+        {% for i in data %}
+            <tr>
+                {% if loop.first or i.question.id != questionId %}
+                    <td style="font-weight: bold">{{ i.question.text }}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+                <td>{{ i.text }}</td>
+                <td style="background-color: {{ i.boolean ? 'lightgreen' : 'lightcoral' }}">
+                    {{ i.boolean ? 'Wahr' : 'Falsch' }}
+                </td>
+
+
+                {% if loop.first or i.question.id != questionId %}
+                    <td>
+                        <form action="edit" method="post">
+                            <input type="hidden" name="surveyId" value="{{ i.question.survey.id }}">
+                            <input type="hidden" name="questionId" value="{{ i.question.id }}">
+                            <input type="submit" value="Edit">
+                        </form>
+                    </td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+
+                {% set questionId = i.question.id %}
+
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
+
+
+{% block stylesheets %}
+    <style>
+        table, tr, td {
+            border: solid;
+            border-collapse: collapse;
+            padding: 2%;
+        }
+
+        td {
+            width: 33.33%;
+        }
+
+    </style>
+{% endblock %}
