@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    {% set data = data | shuffle %}
+
+    <h1>Frage X von Y</h1>
+
+    <form action="response_data" method="post">
+        <table>
+            {#<th>#}
+            {#<td></td>#}
+            {#</th>#}
+
+            {% for i in data %}
+                {% if loop.first %}
+                    <p>survey subject: {{ i.question.survey.subject }}</p>
+                    <p>survey topic: {{ i.question.survey.topic }}</p>
+                    <p>survey semester: {{ i.question.survey.semester }}</p>
+                    <br><br>
+
+                    <p>question text: {{ i.question.text }}</p>
+                    <br><br>
+
+                {% endif %}
+
+                <tr>
+                    {#<td>answer id: {{ i.id }}</td>#}
+                    {#<td>answer is true: {{ i.boolean }}</td>#}
+
+                    <td>{{ i.text }}</td>
+
+                    <td><input type="radio" name="answer_id" value="{{ i.id }}"></td>
+                    <input type="hidden" name="question_id" value="{{ i.question.id }}">
+                    <input type="hidden" name="survey_id" value="{{ i.question.survey.id }}">
+                </tr>
+
+
+            {% endfor %}
+
+        </table><br>
+        <input type="submit" value="Submit">
+    </form>
+
+
+
+
+
+
+{% endblock %}
+
+
+
+
+{% block stylesheets %}
+    <style>
+    </style>
+{% endblock %}

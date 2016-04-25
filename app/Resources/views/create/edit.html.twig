@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <h3>Fach: {{ data[0].question.survey.subject }}, Thema: "{{ data[0].question.survey.topic }}"</h3>
+
+    {% if data[0].question.survey.semester is not null %}
+        <h4>{{ data[0].question.survey.semester }}. Semester</h4>
+    {% endif %}
+
+
+    <form action="edit_data" method="post">
+        {% for i in data %}
+            {% if loop.first %}
+                <div>
+                    Frage<br><input type="text" name="question" value="{{ i.question.text }}">
+                </div><br>
+
+                <div>
+                    Richtige Antwort<br><input type="text" name="answer[][{{ i.id }}]" value="{{ i.text }}">
+                    <input type='checkbox' value='on' checked name='boolean[{{ i.id }}]' style="position: relative; left: 25px"
+                           onclick="return false">
+                </div><br>
+           {% else %}
+
+
+            <div id="{{ loop.last ? "dynamicInput" }}">
+                Antwort {{ loop.index }}<br><input type="text" name="answer[][{{ i.id }}]" value="{{ i.text }}">
+
+                <input type='checkbox' name='boolean[{{ i.id }}]' {{ i.boolean == 'true' ? 'checked' }}
+                       style="position: relative; left: 25px">
+            </div><br>
+            {% endif %}
+        {% endfor %}
+
+
+        <input type="hidden" name="surveyId" value="{{ surveyId }}">
+        <input type="hidden" name="questionId" value="{{ questionId }}">
+
+        <div style="padding-top: 25px">
+            <input type="button" value="Add Input" onClick="addInput('dynamicInput');">
+            <input type="button" value="Remove Input" onClick="removeDiv();">
+        </div>
+
+        <div style="padding-top: 25px">
+            <button type="submit" name='action' value="abort">Zurück</button>
+            <button type="submit" name='action' value="save">Save Changes</button>
+        </div>
+    </form>
+{% endblock %}
+
+
+{% block stylesheets %}
+    <style>
+        table, tr, td {
+            border: solid;
+            border-collapse: collapse;
+            padding: 2%;
+        }
+
+        td {
+            width: 33.33%;
+        }
+    </style>
+{% endblock %}

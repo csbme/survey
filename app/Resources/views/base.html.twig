@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>{% block title %}BESTE{% endblock %}</title>
+
+    {% block stylesheets %}{% endblock %}
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}"/>
+</head>
+
+<body>
+<div align="center">
+    <h1>BESTE UMFRAGEN</h1>
+    <h3>Das Original - seit 2016!</h3>
+</div>
+
+{% if errorMsg is defined and errorMsg is not null %}
+<div style="align-items: center; padding-left: 10%; background-color: #F5871F">
+    {{ errorMsg is defined ? "Error: " ~ errorMsg | title }}
+</div>
+{% endif %}
+
+<div style="padding: 5%">
+    {% block body %}{% endblock %}
+</div>
+
+{% javascripts '@AppBundle/Resources/js/*' %}
+<script src="{{ asset_url }}"></script>
+{% endjavascripts %}
+
+</body>
+</html>

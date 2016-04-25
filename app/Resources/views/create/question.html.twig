@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+
+    <p>{{ surveyId is defined ? surveyId : 'no survey id'}}</p>
+
+
+    <p>{{ totalQuestions is defined ? 'total questions: ' ~ totalQuestions : 'survey does not have any existing questions'}}</p>
+
+    <form action="question" method="post" >
+        <div>
+            Frage<br><input type="text" name="question" value="{{ questionText is defined ? questionText  }}">
+        </div>
+
+        <div id="dynamicInput">
+            Richtige Antwort<br><input type="text" name="answer[]">
+
+            <input type='checkbox' value='true' checked name='boolean[]' style="position: relative; left: 25px" onclick="return false">
+        </div>
+
+
+        <input type="hidden" name="surveyId" value="{{ surveyId is defined ? surveyId}}">
+
+        <div style="padding-top: 25px">
+            <input type="button" value="Add Input" onClick="addInput('dynamicInput');">
+            <input type="button" value="Remove Input" onClick="removeDiv();">
+        </div>
+
+
+        <div style="padding-top: 25px">
+
+
+            {#<input type="submit" name='submit_next' value="Add Next Question">#}
+            {#<input type="submit" name='submit_finish' value="Finish Survey">#}
+
+            <button type="submit" name='action' value="next">Add Next Question</button>
+            <button type="submit" name='action' value="finish">Finish Survey</button>
+
+
+        </div>
+
+    </form>
+
+
+    {#<button id="btn_add" onClick="addInput('dynamicInput');">Add</button>#}
+    {#<button id="btn_remove" onClick="removeDiv();">Remove</button>#}
+
+{% endblock %}
+
+

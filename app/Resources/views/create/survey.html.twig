@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <form action="survey" method="post">
+            <fieldset><br>
+                <legend>Neue Umfrage</legend>
+
+                Unterrichtsfach:<br>
+                <input type="text" name="subject" value="{{ subject is defined ? subject }}"><br><br>
+
+                Thema:<br>
+                <input type="text" name="topic" value="{{ topic is defined ? topic }}"><br>
+
+                <br>Semester:<br>
+                <input type="number" name="semester" value="{{ semester is defined ? semester }}"
+                       placeholder="Optional"><br><br>
+
+                <input type="submit" value="Ok">
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}
+
+{#{% block stylesheets %}#}
+{#<style>#}
+{#</style>#}
+{#{% endblock %}#}
